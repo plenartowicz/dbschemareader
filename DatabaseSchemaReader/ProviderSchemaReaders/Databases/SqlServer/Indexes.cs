@@ -1,10 +1,11 @@
-﻿using System;
+﻿using DatabaseSchemaReader.DataSchema;
+using DatabaseSchemaReader.DataSchema.SqlServer;
+using DatabaseSchemaReader.ProviderSchemaReaders.ConnectionContext;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Linq;
-using DatabaseSchemaReader.DataSchema;
-using DatabaseSchemaReader.ProviderSchemaReaders.ConnectionContext;
 
 namespace DatabaseSchemaReader.ProviderSchemaReaders.Databases.SqlServer
 {
@@ -25,7 +26,9 @@ namespace DatabaseSchemaReader.ProviderSchemaReaders.Databases.SqlServer
 	 IsPrimary = is_primary_key,
 	 IsUnique = is_unique,
 	 Ordinal = ic.key_ordinal,
-	 Filter = ind.filter_definition
+	 Filter = ind.filter_definition,
+	 FILL_FACTOR = ind.fill_factor,
+	 IsIncludedColumn = ic.is_included_column
 FROM 
 	 sys.indexes ind 
 INNER JOIN 
@@ -37,10 +40,9 @@ INNER JOIN
 WHERE 
 	(t.name = @TableName OR @TableName IS NULL) AND 
 	(SCHEMA_NAME(t.schema_id) = @schemaOwner OR @schemaOwner IS NULL) AND 
-	 t.is_ms_shipped = 0 AND
-	 ic.is_included_column = 0
+	 t.is_ms_shipped = 0 
 ORDER BY 
-	 t.name, ind.name, ic.key_ordinal";
+	 t.name, ind.name, ic.is_included_column, ic.key_ordinal, col.name";
 
 		}
 
@@ -55,23 +57,24 @@ ORDER BY
 			var schema = record.GetString("SchemaName");
 			var tableName = record.GetString("TableName");
 			var name = record.GetString("IndexName");
-			var index = Result.FirstOrDefault(f => f.Name == name && f.SchemaOwner == schema && f.TableName.Equals(tableName, StringComparison.OrdinalIgnoreCase));
+			var index = (DatabaseSqlServerIndex)Result.FirstOrDefault(f => f.Name == name && f.SchemaOwner == schema && f.TableName.Equals(tableName, StringComparison.OrdinalIgnoreCase));
 			if (index == null)
 			{
-				index = new DatabaseIndex
+				index = new DatabaseSqlServerIndex
 				{
 					SchemaOwner = schema,
 					TableName = tableName,
 					Name = name,
 					IndexType = record.GetString("INDEX_TYPE"),
 					IsUnique = record.GetBoolean("IsUnique"),
-					Filter = record.GetString("Filter")
+					Filter = record.GetString("Filter"),
+					FillFactor = record.GetInt("FILL_FACTOR"),
 				};
 				if (record.GetBoolean("IsPrimary"))
 				{
 					//by default SqlServer pks have clustered indexes. If they are not, we need to record it.
-					index.IndexType = string.Equals("NONCLUSTERED", index.IndexType, StringComparison.OrdinalIgnoreCase) ? 
-						"PRIMARY NONCLUSTERED" : 
+					index.IndexType = string.Equals("NONCLUSTERED", index.IndexType, StringComparison.OrdinalIgnoreCase) ?
+						"PRIMARY NONCLUSTERED" :
 						"PRIMARY";
 				}
 				Result.Add(index);
@@ -84,8 +87,16 @@ ORDER BY
 				Name = colName,
 				Ordinal = record.GetInt("Ordinal")
 			};
-			index.Columns.Add(col);
 
+			var isIncludedColumn = record.GetBoolean("IsIncludedColumn");
+			if (isIncludedColumn)
+			{
+				index.IncludedColumns.Add(col);
+			}
+			else
+			{
+				index.Columns.Add(col);
+			}
 		}
 
 		public IList<DatabaseIndex> Execute(IConnectionAdapter connectionAdapter)
