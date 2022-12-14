@@ -153,8 +153,8 @@ namespace DatabaseSchemaReader.DataSchema
 			}
 
 			//the two sequences have the same names
-			var columnNames1 = Columns.OrderBy(c => c.Ordinal).Select(c => c.Name);
-			var columnNames2 = other.Columns.OrderBy(c => c.Ordinal).Select(c => c.Name);
+			var columnNames1 = Columns.OrderBy(c => c.Ordinal).Select(c => c.ToIndexedColumn()).Select(x => x.GetNameWithOrder());
+			var columnNames2 = other.Columns.OrderBy(c => c.Ordinal).Select(c => c.ToIndexedColumn()).Select(x => x.GetNameWithOrder());
 
 			return columnNames1.AreEqual(columnNames2);
 		}

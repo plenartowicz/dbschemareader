@@ -28,7 +28,8 @@ namespace DatabaseSchemaReader.ProviderSchemaReaders.Databases.SqlServer
 	 Ordinal = ic.key_ordinal,
 	 Filter = ind.filter_definition,
 	 FILL_FACTOR = ind.fill_factor,
-	 IsIncludedColumn = ic.is_included_column
+	 IsIncludedColumn = ic.is_included_column,
+	 IsDescending = ic.is_descending_key
 FROM 
 	 sys.indexes ind 
 INNER JOIN 
@@ -82,19 +83,28 @@ ORDER BY
 			var colName = record.GetString("ColumnName");
 			if (string.IsNullOrEmpty(colName)) return;
 
-			var col = new DatabaseColumn
-			{
-				Name = colName,
-				Ordinal = record.GetInt("Ordinal")
-			};
+
 
 			var isIncludedColumn = record.GetBoolean("IsIncludedColumn");
 			if (isIncludedColumn)
 			{
+				var col = new DatabaseColumn
+				{
+					Name = colName,
+					Ordinal = record.GetInt("Ordinal")
+				};
 				index.IncludedColumns.Add(col);
 			}
 			else
 			{
+				var isDescending = record.GetBoolean("IsDescending");
+				var col = new DatabaseIndexedColumn
+				{
+					Name = colName,
+					Ordinal = record.GetInt("Ordinal"),
+					ColumnOrder = isDescending ? IndexedColumnOrder.DESC : IndexedColumnOrder.ASC,
+				};
+
 				index.Columns.Add(col);
 			}
 		}

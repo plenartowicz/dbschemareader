@@ -159,7 +159,7 @@ namespace DatabaseSchemaReader.SqlGen.SqlServer
 				indexType, //must have trailing space
 				Escape(index.Name),
 				TableName(databaseTable),
-				GetColumnList(index.Columns.OrderBy(x => x.Ordinal).Select(i => i.Name)),
+				GetIndexedColumnList(index.Columns.OrderBy(x => x.Ordinal).Select(i => i.ToIndexedColumn())),
 				clustered);
 
 			var sqlServerIndex = index as DatabaseSqlServerIndex;

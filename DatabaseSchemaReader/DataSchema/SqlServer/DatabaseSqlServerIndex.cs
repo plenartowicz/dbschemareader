@@ -1,4 +1,5 @@
 ﻿using DatabaseSchemaReader.Utilities;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -8,7 +9,8 @@ namespace DatabaseSchemaReader.DataSchema.SqlServer
 	/// <summary>
 	/// Extension class for Sql Server Index description
 	/// </summary>
-	public class DatabaseSqlServerIndex : DatabaseIndex
+	[Serializable]
+	public partial class DatabaseSqlServerIndex : DatabaseIndex
 	{
 		#region Fields
 		//backing fields
