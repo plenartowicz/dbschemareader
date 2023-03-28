@@ -11,12 +11,12 @@ namespace DatabaseSchemaReader.Compare
 
         public static string StripComments(string sql)
         {
-            //http://ostermiller.org/findcomment.html remove multiline comments
-            sql = FindComments.Replace(sql, string.Empty);
+	        //http://ostermiller.org/findcomment.html remove multiline comments
+	        //sql = FindComments.Replace(sql, string.Empty);
 
-            // remove empty lines and -- single line comments
-            // ignore multi-line comments /* */
-            var sb = new StringBuilder();
+	        // remove empty lines and -- single line comments
+	        // ignore multi-line comments /* */
+	        var sb = new StringBuilder();
             using (var sr = new StringReader(sql))
             {
                 string line;
