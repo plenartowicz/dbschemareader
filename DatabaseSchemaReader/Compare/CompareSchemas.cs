@@ -1,7 +1,8 @@
-﻿using System.Collections.Generic;
-using System.Text;
-using DatabaseSchemaReader.DataSchema;
+﻿using DatabaseSchemaReader.DataSchema;
 using DatabaseSchemaReader.Utilities;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 
 namespace DatabaseSchemaReader.Compare
 {
@@ -70,8 +71,9 @@ namespace DatabaseSchemaReader.Compare
             var list = new List<CompareResult>();
 
             var compareTables = new CompareTables(list, _writer);
+
             //make sure they are in topological order- if 2 tables are added, the first must not have a foreign key to the second...
-            var comparedTables = SchemaTablesSorter.TopologicalSort(_compareSchema);
+            var comparedTables = SchemaTablesSorter.TopologicalSort(_compareSchema).ToList();
             compareTables.Execute(_baseSchema.Tables, comparedTables);
 
             //compare sequences
