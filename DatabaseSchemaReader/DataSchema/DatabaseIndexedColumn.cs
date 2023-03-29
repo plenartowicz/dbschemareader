@@ -26,6 +26,9 @@ namespace DatabaseSchemaReader.DataSchema
 		/// <param name="databaseColumn"></param>
 		public DatabaseIndexedColumn(DatabaseColumn databaseColumn)
 		{
+			Name = databaseColumn.Name;
+			SchemaOwner = databaseColumn.SchemaOwner;
+			Tag = databaseColumn.Tag;
 			DbDataType = databaseColumn.DbDataType;
 			Length = databaseColumn.Length;
 			Nullable = databaseColumn.Nullable;
